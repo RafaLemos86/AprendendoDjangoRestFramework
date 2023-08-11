@@ -14,8 +14,8 @@ class AvaliacaoSerializer(serializers.ModelSerializer):
         model = Avaliacao
 
         # campos que irao ser mostrados ao consultar este model
-        fields = {
-            'id'
+        fields = [
+            'id',
             'nome',
             'avaliacao',
             'comentario',
@@ -24,7 +24,7 @@ class AvaliacaoSerializer(serializers.ModelSerializer):
             'criacao',
             'ativo',
             'curso'
-        }
+        ]
 
         # apenas permitido escrever o email (cadastro) na hora da consulta ele nao ira retornar
         extra_kwargs = {
@@ -36,11 +36,7 @@ class AvaliacaoSerializer(serializers.ModelSerializer):
 
 class CursoSerializer(serializers.ModelSerializer):
     class Meta:
+
+        model = Curso
         # tds os campos podem ser mostrados
-        fields = {
-            'id',
-            'url',
-            'titulo',
-            'criacao',
-            'ativo'
-        }
+        fields = '__all__'
