@@ -1,52 +1,61 @@
-from rest_framework.views import APIView
-from rest_framework.views import Response
-from rest_framework import status
+from .serializers import AvaliacaoSerializer, CursoSerializer
+from .models import Curso, Avaliacao
+from rest_framework import generics
+from rest_framework.generics import get_object_or_404
 
-from .models import Avaliacao, Curso
-from . serializers import AvaliacaoSerializer, CursoSerializer
-
-
-class AvaliacaoAPIView(APIView):
-
-    """
-    api da avaliacao dos cursos
-    """
-
-    def get(self, request):
-        # pegando todas as avaliacoes
-        avaliacoes = Avaliacao.objects.all()
-        # parametro many pois sao mais de um registro
-        serializer = AvaliacaoSerializer(avaliacoes, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        # serializando os dados recebidos
-        serializer = AvaliacaoSerializer(data=request.data)
-        # se os dados forem invalidos, msg de erro
-        serializer.is_valid(raise_exception=True)
-        # salvando no BD
-        serializer.save()
-        # retorna
-        return Response({"msg": "A avaliação foi registrada com sucesso"}, status=status.HTTP_201_CREATED)
+# retorna toda a lista e cria uma nova colecao
 
 
-class CursoAPIView(APIView):
+class AvaliacoesAPIView(generics.ListCreateAPIView):
+    queryset = Avaliacao.objects.all()
+    serializer_class = AvaliacaoSerializer
 
-    """
-    API dos cursos
-    """
+    # essa classe foi modificada na "urls.py", pois na url nao esta sendo utilizado "pk" como padrao
+    # por isso, deve mudar o comportamento da classe
 
-    def get(self, request):
-        cursos = Curso.objects.all()
-        serializer = CursoSerializer(cursos, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        # verificar se o curso esta sendo passado na url
+        if (self.kwargs.get("curso_pk")):
+            #  se tiver, retorna somente este curso
+            return self.queryset.filter(curso_id=self.kwargs.get("curso_pk"))
 
-    def post(self, request):
-        # serializando os dados recebidos
-        serializer = CursoSerializer(data=request.data)
-        # se os dados forem invalidos, msg de erro
-        serializer.is_valid(raise_exception=True)
-        # salvando no BD
-        serializer.save()
-        # retorna
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # se nao retorna todos
+        return self.queryset.all()
+
+
+# retorna toda a lista e cria uma nova colecao
+
+
+class CursosAPIView(generics.ListCreateAPIView):
+    queryset = Curso.objects.all()
+    serializer_class = CursoSerializer
+
+# acha um obj pelo id e deleta tambem pelo id
+
+
+class CursoAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Curso.objects.all()
+    serializer_class = CursoSerializer
+
+# acha um obj pelo id e deleta tambem pelo id
+
+
+class AvaliacaoAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Avaliacao.objects.all()
+    serializer_class = AvaliacaoSerializer
+
+    # essa classe foi modificada na "urls.py", pois na url nao esta sendo utilizado "pk" como padrao
+    # por isso, deve mudar o comportamento da classe
+
+    def get_object(self):
+        # pegando a pk da URL
+        curso_pk = self.kwargs.get("curso_pk")
+        avaliacao_pk = self.kwargs.get("avaliacao_pk")
+
+        # se existe, fazer o JOIN com ela
+        if curso_pk:
+            # pegando toda a colecao e fazendo o JOIN entre curso_id e pk
+            return get_object_or_404(self.queryset.all(), curso_id=curso_pk, pk=avaliacao_pk)
+
+        # se nao exite, nao tem JOIN para fazer
+        return get_object_or_404(self.queryset.all(), pk=avaliacao_pk)
