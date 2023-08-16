@@ -1,7 +1,17 @@
 from .serializers import AvaliacaoSerializer, CursoSerializer
 from .models import Curso, Avaliacao
+
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
+# v2
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.decorators import action
+
+"""
+API V1
+"""
+
 
 # retorna toda a lista e cria uma nova colecao
 
@@ -59,3 +69,32 @@ class AvaliacaoAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         # se nao exite, nao tem JOIN para fazer
         return get_object_or_404(self.queryset.all(), pk=avaliacao_pk)
+
+
+"""
+API V2
+"""
+
+
+class CursoViewSet(viewsets.ModelViewSet):
+    queryset = Curso.objects.all()
+    serializer_class = CursoSerializer
+
+    # action serve para criar a rota personalizada (curso/avaliacoes)
+    @action(detail=True, methods=["get", "post"])
+    # rota relacionando duas tabelas para a V2
+    def avaliacoes(self, request, pk=None):
+        # pegando o curso
+        curso = self.get_object()
+        # fazendo o relacionamento entre as tabelas
+
+        # serializer era retornar todas as AVALIACOES do CURSO
+        # o nome "avaliacoes" e o nome dado para a chave estrengeira no Model de Avaliacao (models.py)
+        serializer = AvaliacaoSerializer(curso.avaliacoes.all(), many=True)
+
+        return Response(serializer.data)
+
+
+class AvaliacaoViewSet(viewsets.ModelViewSet):
+    queryset = Avaliacao.objects.all()
+    serializer_class = AvaliacaoSerializer
