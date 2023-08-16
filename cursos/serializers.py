@@ -36,6 +36,7 @@ class AvaliacaoSerializer(serializers.ModelSerializer):
             'email': {'write_only': True}
         }
 
+
 # serializer de curso
 
 
