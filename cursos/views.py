@@ -7,6 +7,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework import permissions
+from .authorization import SuperUser
 
 """
 API V1
@@ -79,6 +81,13 @@ API V2
 class CursoViewSet(viewsets.ModelViewSet):
     queryset = Curso.objects.all()
     serializer_class = CursoSerializer
+
+    # modificando as permissoes individuais de cada view
+    # a permissao global esta no settings.py
+    permission_classes = (
+        permissions.DjangoModelPermissions,
+        SuperUser,
+    )
 
     # action serve para criar a rota personalizada (curso/avaliacoes)
     @action(detail=True, methods=["get", "post"])

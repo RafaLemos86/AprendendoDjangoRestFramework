@@ -8,6 +8,8 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
+
+token: 46a48747c49fa70c69c33a7bdf886f0fdd6fe1f0
 """
 
 from pathlib import Path
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     # PERSONALIZADO
     'django_filters',
     'rest_framework',
+    'rest_framework.authtoken',
 
     'cursos',
 ]
@@ -134,16 +137,28 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # PERSONALIZADO
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
 
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
-
+    # DEFININDO A QUANTIDADE DE PAGINAS POR RESULTADOS DA REQUEST
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2
+    'PAGE_SIZE': 2,
+
+    # LIMITANDO A QUANTIDADE DE REQUEST POR USUARIO(ANONIMO E AUTH)
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute',
+        'user': '10/minute'
+    }
 }
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
