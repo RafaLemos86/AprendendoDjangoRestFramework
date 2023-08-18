@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Curso, Avaliacao
+from django.db.models import Avg
 
 # serializers serve para transformar e destransformar obj JSON
 
@@ -36,6 +37,14 @@ class AvaliacaoSerializer(serializers.ModelSerializer):
             'email': {'write_only': True}
         }
 
+    # validando um dado da tabela
+    # sempre este padrao (validade_nomeDoCampo)
+    def validate_avaliacao(self, valor):
+        if (valor > 0) and (valor <= 5):
+            return valor
+        raise serializers.ValidationError(
+            "A avaliação deve ser entre 1 e 5")
+
 
 # serializer de curso
 
@@ -56,6 +65,19 @@ class CursoSerializer(serializers.ModelSerializer):
     # Primary Key Related Field (retorna a pk das avaliacoes)
 
     avaliacoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    # este campo recebe uma funcao e retorna o valor de forma dinamica
+    # sempre este padrao (def: get_nomeDaVariavel)
+    media_avaliacoes = serializers.SerializerMethodField()
+
+    def get_media_avaliacoes(self, obj):
+        # avaliacoes é o nome da chave estrangeira do model (models.py)
+        media = obj.avaliacoes.aggregate(
+            Avg('avaliacao')).get("avaliacao__avg")
+
+        if media is None:
+            return 0
+        return round(media, ndigits=2)
 
     class Meta:
         model = Curso
